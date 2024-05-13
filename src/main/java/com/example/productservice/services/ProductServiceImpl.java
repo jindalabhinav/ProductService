@@ -30,7 +30,7 @@ return null;
     }
 
     @Override
-    public void updateProductById(Long id) {
-
+    public Product updateProductById(Product id) {
+        return null;
     }
 }

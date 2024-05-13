@@ -2,7 +2,10 @@ package com.example.productservice.thirdpartyclients;
 
 import com.example.productservice.dtos.FakeStoreProductDto;
 import com.example.productservice.exceptions.ProductNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -11,13 +14,20 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 @Component
+// This comes from a third party and usually comes direct as an Implementation
+// and not an Interface because it won't have multiple implementations of the interface exposed
 public class FakeStoreClient {
     private final RestTemplateBuilder restTemplateBuilder;
-    private final String specificProductUrl = "https://fakestoreapi.com/products/{id}";
-    private final String genericProductUrl = "https://fakestoreapi.com/products";
+    private final String specificProductUrl;
+    // @Value("${fakestore.api.url}") // this will also work and Constructor injection is not needed
+    private final String genericProductUrl;
 
-    public FakeStoreClient(RestTemplateBuilder restTemplateBuilder) {
+    @Autowired
+    public FakeStoreClient(RestTemplateBuilder restTemplateBuilder,
+                           @Value("${fakestore.api.url}") String genericProductUrl) {
         this.restTemplateBuilder = restTemplateBuilder;
+        this.genericProductUrl = genericProductUrl;
+        this.specificProductUrl = genericProductUrl + "/{id}";
     }
 
     public FakeStoreProductDto getProductById(Long id) {
@@ -63,7 +73,27 @@ public class FakeStoreClient {
         return responseEntity.getBody();
     }
 
-    public void updateProductById(Long id) {
+    public FakeStoreProductDto updateProductById(FakeStoreProductDto request) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
+        // Prepare the request entity with the product object
+        HttpEntity<FakeStoreProductDto> requestEntity = new HttpEntity<>(request);
+
+        // Execute the PUT request using exchange method
+        ResponseEntity<FakeStoreProductDto> responseEntity = restTemplate.exchange(
+                specificProductUrl, // URL endpoint
+                HttpMethod.PUT, // HTTP method
+                requestEntity, // Request entity containing the product object
+                FakeStoreProductDto.class, // Expected response type
+                request.getId() // Parameters sent for URL
+        );
+
+        // Check if the response body is null
+        if (responseEntity.getBody() == null) {
+            throw new ProductNotFoundException("No Product found to delete");
+        }
+
+        // Return the updated product DTO
+        return responseEntity.getBody();
     }
 }

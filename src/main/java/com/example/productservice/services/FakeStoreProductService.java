@@ -4,6 +4,7 @@ import com.example.productservice.dtos.FakeStoreProductDto;
 import com.example.productservice.models.Category;
 import com.example.productservice.models.Product;
 import com.example.productservice.thirdpartyclients.FakeStoreClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -13,6 +14,7 @@ import java.util.List;
 public class FakeStoreProductService implements ProductService {
     private final FakeStoreClient fakeStoreClient;
 
+    @Autowired
     public FakeStoreProductService(FakeStoreClient fakeStoreClient) {
         this.fakeStoreClient = fakeStoreClient;
     }
@@ -41,8 +43,9 @@ public class FakeStoreProductService implements ProductService {
     }
 
     @Override
-    public void updateProductById(Long id) {
-
+    public Product updateProductById(Product request) {
+        FakeStoreProductDto fakeStoreProductDto = getFakeStoreProductDtoFromProduct(request);
+        return getProductFromFakeStoreProductDto(fakeStoreClient.updateProductById(fakeStoreProductDto));
     }
 
     private Product getProductFromFakeStoreProductDto(FakeStoreProductDto fakeStoreProductDto) {

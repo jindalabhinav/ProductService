@@ -18,7 +18,6 @@ classDiagram
         - rating
     }
 
-
     class Category {
         - id
         - name
@@ -50,3 +49,48 @@ But here, if the key name changes a bit, or if the value's datatype changes, the
 
 Instead, we can use an Object Mapper, that maps the JSON map to the desired class object.
 
+## JSON vs Protobuf
+
+`Communication Flow: Client <-> Server
+`
+### JSON
+
+- **Format:** Text-based (often transmitted as UTF-8 encoded bytes)
+- **Pros:**
+  - *Human-readable:* Easy to understand and debug.
+  - *Shema-less:* Flexible data structures, no upfront schema definition needed.
+  - *Widely supported:* Integrates well with web technologies like Javascript.
+- **Cons:**
+  - *Larger message size:* Less efficient for network transmission.
+  - *Slower processing:* Serialization and deserialization can be slower.
+
+### Protobuf
+
+- **Format:** Compact binary format
+- **Pros:**
+  - *Smaller message size:* Improves network transmission efficiency.
+  - *Faster processing:* Encoding and decoding are generally faster than JSON.
+  - *Schema-based:* Ensures data compatibility and avoids errors.
+- **Cons:**
+  - *Not human-readable:* Debugging can be more challenging.
+  - *Requires schema definition:* Upfront effort to define the data structure.
+  - *Less widely supported:* Might require additional libraries for some languages.
+
+### Choosing the Right Format
+
+- Use JSON for:
+  - Human-readable data exchange.
+  - Integration with web technologies.
+  - Flexible data structures.
+- Use Protobuf for:
+  - Performance-critical applications.
+  - Reducing network traffic.
+  - Ensuring data consistency between sender and receiver.
+
+**Note:**
+
+**Security:** Neither JSON nor Protobuf offers inherent security. Encryption is needed for secure data exchange.
+
+![alt text](image.png)
+
+https://protobuf.dev/
