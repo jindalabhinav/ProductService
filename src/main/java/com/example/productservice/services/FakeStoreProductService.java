@@ -52,7 +52,7 @@ public class FakeStoreProductService implements ProductService {
         Product product = new Product();
         product.setId(fakeStoreProductDto.getId());
         product.setTitle(fakeStoreProductDto.getTitle());
-        product.setDesc(fakeStoreProductDto.getDescription());
+        product.setDescription(fakeStoreProductDto.getDescription());
         product.setPrice(fakeStoreProductDto.getPrice());
         Category category = new Category();
         category.setName(fakeStoreProductDto.getCategory());
@@ -64,7 +64,7 @@ public class FakeStoreProductService implements ProductService {
     private FakeStoreProductDto getFakeStoreProductDtoFromProduct(Product request) {
         FakeStoreProductDto fakeStoreProductDto = new FakeStoreProductDto();
         fakeStoreProductDto.setId(request.getId());
-        fakeStoreProductDto.setDescription(request.getDesc());
+        fakeStoreProductDto.setDescription(request.getDescription());
         fakeStoreProductDto.setPrice(request.getPrice());
         fakeStoreProductDto.setCategory(request.getCategory().getName());
         fakeStoreProductDto.setTitle(request.getTitle());
