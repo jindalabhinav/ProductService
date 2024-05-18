@@ -14,8 +14,8 @@ import java.util.UUID;
 @MappedSuperclass // we don't want a table to be created for BaseModel
 public abstract class BaseModel {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     // It instructs the JPA provider to choose the appropriate strategy for generating the ID
     // based on the underlying database system, whatever it supports
-    private UUID id;
+    private Long id;
 }

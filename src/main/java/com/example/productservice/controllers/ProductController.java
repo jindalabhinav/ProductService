@@ -17,7 +17,7 @@ public class ProductController {
     private final ProductService productService;
 
     @Autowired
-    public ProductController(@Qualifier("FakeProductService") ProductService productService) {
+    public ProductController(@Qualifier("ProductService") ProductService productService) {
         this.productService = productService;
     }
 
@@ -43,6 +43,6 @@ public class ProductController {
 
     @PutMapping
     public Product updateProduct(@RequestBody Product request) {
-        return productService.updateProductById(request);
+        return productService.updateProduct(request);
     }
 }
