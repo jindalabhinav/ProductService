@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class User extends BaseModel {
+public class User {
     private String name;
     private String email;
     private String hashedPassword;

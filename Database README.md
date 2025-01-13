@@ -71,7 +71,7 @@ The code to interact with the persistence layer should be separate from the appl
       - Indexing will take time
       - Email Id can change as it is a user attribute
     - Not a good Identifier
-  - Some Integer/Long as PK? Needs autoincrement.
+  - Some Integer/Long as PK? Needs auto-increment.
     - Disadvantages
       - Overflow
       - If the database is distributed, then the PK should be in sync across machines
@@ -106,7 +106,7 @@ Different types of Users
 
 Each User type has some specific attributes, on top of the common attributes from above. And to create Tables using JPA, we can annotate these classes with `@Entity`.
 
-### @MappedSuperClass
+### `@MappedSuperClass`
 
 Now Scaler will never have just a normal User, it is always going to be of a specific type. Hence, we don't need a Table for User, but rather for its child classes such as Students and Mentors, which have some common columns from the User class. For this, we'll annotate the User class with `@MappedSuperClass` and not `@Entity`.
 
@@ -116,11 +116,11 @@ Now Scaler will never have just a normal User, it is always going to be of a spe
 - How to get all the list of Users
   - Using Joins or Unions
 
-### @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+### `@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)`
 
-In case I want the Tables for all the classes in the hierarchy, I can use `@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)`.
+In case I want the Tables for all the classes in the hierarchy, I can use `@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)`. i.e., a table for `Users`, `Students`, `Mentors`, and so on. Each table will have columns for the fields defined in the respective class.
 
-### @Inheritance(strategy = InheritanceType.JOINED)
+### `@Inheritance(strategy = InheritanceType.JOINED)`
 
 > How do we get all the Users?
 
@@ -128,7 +128,7 @@ This strategy is used when we want to get all the Users, irrespective of their t
 
 It will create all the columns from the Users class, and the tables for the subclasses will have only the columns specific to them. The tables will be joined using the primary key of the parent class, present as a foreign key in the child class tables. This is the most used form of Inheritance strategy.
 
-### @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+### `@Inheritance(strategy = InheritanceType.SINGLE_TABLE)`
 
 If we need all the data in a single table, be it Users, Students, or Mentors, we can use this strategy. It will create a single table with all the columns from the parent and child classes. The child class columns will be nullable. Also, it'll have a discriminator column to differentiate between the different types of Users.
 
@@ -188,10 +188,10 @@ private Category category;
 
 The `@ManyToOne` annotation in JPA is used to establish a many-to-one relationship between two entities. The cascade attribute of this annotation defines the set of cascade operations that should be propagated to the associated entity.
 
-- CascadeType.PERSIST: This means that if the owning entity is persisted (saved), then the associated entity should also be persisted. In your case, if a Product is saved, then the associated Category should also be saved.  
-- CascadeType.ALL: This is a shorthand that includes all cascade operations (PERSIST, MERGE, REMOVE, REFRESH, DETACH). This means that any operation performed on the owning entity will also be propagated to the associated entity. In your case, if a Product is saved, deleted, updated, refreshed or detached, then the associated Category will also undergo the same operation.
+- `CascadeType.PERSIST`: This means that if the owning entity is persisted (saved), then the associated entity should also be persisted. In our case, if a `Product` is saved, then the associated `Category` should also be saved.  
+- `CascadeType.ALL`: This is a shorthand that includes all cascade operations (`PERSIST`, `MERGE`, `REMOVE`, `REFRESH`, `DETACH`). This means that any operation performed on the owning entity will also be propagated to the associated entity. In your case, if a `Product` is saved, deleted, updated, refreshed or detached, then the associated Category will also undergo the same operation.
 
-It's important to note that CascadeType.ALL might not be suitable for all situations. For example, you might not want to delete a Category just because a Product was deleted. In such cases, it would be better to use a more specific cascade type like CascadeType.PERSIST or CascadeType.MERGE.
+It's important to note that `CascadeType.ALL` might not be suitable for all situations. For example, you might not want to delete a `Category` just because a `Product` was deleted. In such cases, it would be better to use a more specific cascade type like `CascadeType.PERSIST` or `CascadeType.MERGE`.
 
 ### Fetch Type
 

@@ -58,7 +58,7 @@ Instead, we can use an Object Mapper, that maps the JSON map to the desired clas
 - **Format:** Text-based (often transmitted as UTF-8 encoded bytes)
 - **Pros:**
   - *Human-readable:* Easy to understand and debug.
-  - *Shema-less:* Flexible data structures, no upfront schema definition needed.
+  - *Schema-less:* Flexible data structures, no upfront schema definition needed.
   - *Widely supported:* Integrates well with web technologies like Javascript.
 - **Cons:**
   - *Larger message size:* Less efficient for network transmission.
@@ -110,4 +110,4 @@ Now the Product Service needs to do some security validations as well. Is that t
 
 No, it's not. The primary responsibility of the Product Service is to handle all the business logic related to products. So, we need to create a new package called `com.example.product.security` and move all the security-related classes there.
 
-We can have a different packages for Products, Security, and other modules. But, we can also have a module-based package structure. This is a better approach as it helps in maintaining the codebase and makes it more scalable. 
+We can have a different packages for Products, Security, and other modules. But, we can also have a module-based package structure. This is a better approach as it helps in maintaining the codebase and makes it more scalable. Hence, if there are classes that we need to add for Security (like controller, service, and repository), we first get into the respective module, and then follow MVC.

@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Role extends BaseModel{
+public class Role {
     private String name;
 }

@@ -167,3 +167,47 @@ We sometimes see a popup after clicking on the Google login button while signing
 
 ![img_1.png](img_1.png)
 
+## Manual Authentication
+
+We've implemented the manual way of implementing Authentication by implementing the following code-blocks:
+
+```java
+// ProductController
+
+@GetMapping("/{id}")
+public Product getProductById(@RequestHeader("Authorization") String token,
+                              @PathVariable("id") Long id) throws AccessDeniedException {
+    if (!authenticationService.authenticate(token)) {
+        throw new AccessDeniedException("You're not authorized to perform this operation");
+    }
+    return productService.getProductById(id);
+}
+```
+
+```java
+// ProductService
+
+private final String url = "http://localhost:9000/users/validateToken/{token}";
+
+public boolean authenticate(String token) {
+    ResponseEntity<Token> responseEntity = restTemplate.getForEntity(url, Token.class, token);
+    return responseEntity.getBody() != null;
+}
+```
+
+```java
+// UserService
+
+public Token validateToken(String token) {
+    Optional<Token> foundToken = tokenRepository.findByValueAndDeleted(token, false);
+    if (foundToken.isEmpty())
+        throw new UserNotFoundException("User doesn't exist or is logged out");
+
+    if (foundToken.get().getExpiryAt().before(Date.from(Instant.now())))
+        throw new TokenExpiredException("Token has expired");
+
+    return foundToken.get();
+}
+```
+
+How can we implement this using the spring libraries so that we don't have to implement Auth ourselves?

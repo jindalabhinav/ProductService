@@ -21,7 +21,9 @@ public class AuthenticationService {
 }
 
 /*
-Client --> User Service (Auth server)
-UserService --> Token --> Client
-Client --Token--> User Service /validate
+    Client --> User Service (Auth server)                               [Client requests authentication from User Service]
+    UserService --Token--> Client                                       [User Service provides an authentication token to the Client]
+    Client --Token--> Product Service (get resource)                    [Client uses the token to request a resource from Product Service]
+    ProductService --Token--> UserService (/validate)                   [Product Service sends the token to User Service for validation]
+    ProductService --if token validated--> Client (resource returned)   [If the token is validated, Product Service returns the requested resource to the Client]
  */
