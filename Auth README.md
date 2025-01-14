@@ -286,6 +286,8 @@ The Authorization Code grant type is used by confidential and public clients to 
 3. The authorization server redirects the user back to the client with an authorization code.
 4. The client exchanges the authorization code for an access token.
 
+![alt text](image-2.png)
+
 #### CLIENT_CREDENTIALS
 The Client Credentials grant type is used by clients to obtain an access token outside of the context of a user. This is typically used for machine-to-machine (M2M) applications.
 
@@ -338,4 +340,165 @@ public UserDetailsService userDetailsService() {
 > How do we make this Database-driven instead of using an In-Memory store?
 
 Reference: https://www.baeldung.com/spring-security-authentication-with-a-database
+
+### Claims in JWT
+
+Claims in JWT (JSON Web Token) are pieces of information asserted about a subject (typically the user) and are encoded as a JSON object. These claims are used to share information between parties in a secure and compact manner.
+
+**Types of Claims:**
+- **Registered Claims:** Predefined claims that are recommended to provide a set of useful, interoperable claims.
+  - `iss` (Issuer): Identifies the principal that issued the JWT.
+  - `sub` (Subject): Identifies the principal that is the subject of the JWT.
+  - `aud` (Audience): Identifies the recipients that the JWT is intended for.
+  - `exp` (Expiration Time): Identifies the expiration time on or after which the JWT must not be accepted for processing.
+  - `nbf` (Not Before): Identifies the time before which the JWT must not be accepted for processing.
+  - `iat` (Issued At): Identifies the time at which the JWT was issued.
+  - `jti` (JWT ID): Provides a unique identifier for the JWT.
+- **Public Claims:** Custom claims that can be defined by the users to share information. These should be collision-resistant to avoid conflicts.
+  - Example: `name`, `email`, `role`
+- **Private Claims:** Custom claims that are used to share information between parties that agree on using them and are not intended to be shared publicly.
+  - Example: `userId`, `sessionId`
+
+**Example of a JWT Payload with Claims:**
+
+```java
+{
+  "iss": "auth.example.com",
+  "sub": "user@example.com",
+  "aud": "example.com",
+  "exp": 1618888399,
+  "iat": 1618884799,
+  "jti": "unique-jwt-id",
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "role": "admin"
+}
+```
+
+> How do we add custom claims to JWT?
+
+Reference: https://docs.spring.io/spring-authorization-server/reference/guides/how-to-custom-claims-authorities.html
+
+```java
+@Bean
+public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() { 
+    return (context) -> {
+        // Check if the token type is an access token
+        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) { 
+            // Customize the claims in the token
+            context.getClaims().claims((claims) -> { 
+                // Extract roles from the principal's authorities, remove the "ROLE_" prefix, and collect them into an unmodifiable set
+                Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
+                    .stream()
+                    .map(c -> c.replaceFirst("^ROLE_", ""))
+                    .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet)); 
+                
+                // Add the roles to the claims
+                claims.put("roles", roles);
+                
+                // Add a custom claim "ServiceRole" with the value "ADMIN"
+                claims.put("ServiceRole", "ADMIN");
+            });
+        }
+    };
+}
+```
+
+### OAuth 2.0 Resource Server With Spring Security
+
+> What Is a Resource Server?
+
+In the context of OAuth 2.0, a resource server is an application that protects resources via OAuth tokens. These tokens are issued by an authorization server, typically to a client application. The job of the resource server is to validate the token before serving a resource to the client.
+
+A token’s validity is determined by several things:
+- Did this token come from the configured authorization server?
+- Is it unexpired?
+- Is this resource server its intended audience?
+- Does the token have the required authority to access the requested resource?
+
+#### Maven Dependencies
+
+```maven
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    <version>3.4.1</version>
+</dependency>
+```
+
+#### Security Configuration
+
+The moment we add the below config, all our endpoints within this service will be authenticated and will start throwing a `401 Unauthorized` error.
+
+```java
+@Bean // This annotation indicates that a method produces a bean to be managed by the Spring container
+public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+        throws Exception {
+    http
+            .authorizeHttpRequests((authorize) -> authorize
+                    .anyRequest().authenticated() // Require all requests to be authenticated
+            )
+            .csrf().disable()
+            .cors().disable()
+
+    return http.build(); // Build the HttpSecurity instance
+}
+```
+
+We can add some requestMatchers to allow users with certain authority to access particular resources:
+
+```java
+@Bean // This annotation indicates that a method produces a bean to be managed by the Spring container
+public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+        throws Exception {
+    http
+            .authorizeHttpRequests((authorize) -> authorize
+                    .requestMatchers("/products/{id}").hasAuthority("CUSTOMER") // Only users with CUSTOMER authority can access /products/{id}
+                    .requestMatchers("/products").hasAuthority("ADMIN") // Only users with ADMIN authority can access /products
+                    .anyRequest().authenticated() // Require all requests to be authenticated
+            )
+            .csrf().disable()
+            .cors().disable()
+
+    return http.build(); // Build the HttpSecurity instance
+}
+```
+
+The Resource Server can also make use of the custom claims set in the token to derive Authorities:
+
+```java
+@Bean
+public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    grantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
+    grantedAuthoritiesConverter.setAuthoritiesClaimName("ServiceRole");
+
+    JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+    return jwtAuthenticationConverter;
+}
+```
+
+To make use of the `jwtAuthenticationConverter` in the `defaultSecurityFilterChain`, we need to configure the `HttpSecurity` object to use the `JwtAuthenticationConverter` for JWT-based authentication.
+
+```java
+@Bean
+public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests((authorize) -> authorize
+            .requestMatchers("/products/{id}").hasAuthority("CUSTOMER")
+            .requestMatchers("/products").hasAuthority("ADMIN")
+            .anyRequest().authenticated()
+        )
+        .csrf().disable()
+        .cors().disable()
+        .oauth2ResourceServer(oauth2 -> oauth2
+            .jwt(jwt -> jwt
+                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+            )
+        );
+
+    return http.build();
+}
+```
 
