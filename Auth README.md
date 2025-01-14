@@ -82,7 +82,9 @@ function verifyToken(token, secretKey) {
 }
 ```
 
-**Note:** In some authentication systems, a pair of keys (public and private) is used instead of a single secret key. This is known as asymmetric cryptography.  In the context of JWT, there are two types of algorithms that can be used for signing the token:
+#### Symmetric vs Asymmetric Authentication
+
+In some authentication systems, a pair of keys (public and private) is used instead of a single secret key. This is known as asymmetric cryptography.  In the context of JWT, there are two types of algorithms that can be used for signing the token:
 1. HMAC (Hash-based Message Authentication Code): This is a symmetric algorithm, which means it uses the same secret key for signing the token and verifying it. The secret key is known only to the server.  
 2. RSA (Rivest–Shamir–Adleman) or ECDSA (Elliptic Curve Digital Signature Algorithm): These are asymmetric algorithms, which means they use a pair of keys - a private key and a public key. The private key is used to sign the token and the public key is used to verify it. The private key is kept secret on the server, while the public key can be distributed to anyone who needs to verify the token.  
 
@@ -167,9 +169,9 @@ We sometimes see a popup after clicking on the Google login button while signing
 
 ![img_1.png](img_1.png)
 
-## Manual Authentication
+## Manual Authorization
 
-We've implemented the manual way of implementing Authentication by implementing the following code-blocks:
+We've used the manual way of implementing Authorization by using the following code-blocks:
 
 ```java
 // ProductController
@@ -211,3 +213,129 @@ public Token validateToken(String token) {
 ```
 
 How can we implement this using the spring libraries so that we don't have to implement Auth ourselves?
+
+## Authorization using Spring Authorization Server
+
+We can refer to how to get started with Spring Authorization Server from [this](https://docs.spring.io/spring-authorization-server/reference/getting-started.html) link.
+
+We add all the necessary code blocks from the guide mentioned above and run the User Service. Now on hitting any of the existing APIs like (`/login`), we see an HTML getting returned instead of the JSON response, prompting us to login using a username and password.
+
+![alt text](image-1.png)
+
+Now by default, spring uses an `InMemoryUserDetailsManager`, but we want to get the details from the database. So let's explore Spring Auth Server with JPA.
+
+## Spring Auth Server with JPA
+
+Reference: https://docs.spring.io/spring-authorization-server/reference/guides/how-to-jpa.html
+
+The very first thing required here is to create entities for:
+- Client
+- Authorization
+- AuthorizationConsent
+
+Then we create the repositories to add this information to the database. These classes are also present in the guide above. Once done, we'll have the following Repositories:
+- ClientRepository
+- AuthorizationRepository
+- AuthorizationConsentRepository
+
+Following services are created that make use of the repositories above:
+- JpaRegisteredClientRepository
+- JpaOAuth2AuthorizationService
+- JpaOAuth2AuthorizationConsentService
+
+Once we're done creating the required classes, we can register a new client using the code below:
+
+```java
+public void registeredClientRepository() {
+    RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString()) // Generate a random UUID for the client ID
+            .clientId("oidc-client") // Like ProductService could be a client for Google, Google would give ProductService a client ID
+            .clientSecret("{noop}secret") // ProductService would be given a client secret by as well by Google
+            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC) // Set the client authentication method
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE) // Set the authorization grant type
+            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN) // Set the refresh token grant type
+            .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS) // Set the client credentials grant type
+            .redirectUri("https://oauth.pstmn.io/v1/callback") // Set the redirect URI
+            .postLogoutRedirectUri("https://oauth.pstmn.io/v1/callback") // Set the post logout redirect URI
+            .scope(OidcScopes.OPENID) // Set the scope to "openid"
+            .scope(OidcScopes.PROFILE) // Set the scope to "profile"
+            .scope("ADMIN")
+            .scope("STUDENT")
+            .scope("MENTOR")
+            .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build()) // Require authorization consent
+            .build(); // Build the RegisteredClient instance
+
+    registeredClientRepository.save(oidcClient);
+}
+```
+
+The code above supports 3 grant-types, i.e., `AUTHORIZATION_CODE`, `CLIENT_CREDENTIALS`, `REFRESH_TOKEN`.
+
+### Understanding Grant Types
+
+#### AUTHORIZATION_CODE
+The Authorization Code grant type is used by confidential and public clients to exchange an authorization code for an access token. It is the most common OAuth 2.0 flow and is used for server-side applications.
+
+1. **Client:** The application requesting access to the user's resources.
+2. **Authorization Server:** The server that authenticates the user and issues the authorization code.
+3. **Resource Server:** The server hosting the protected resources.
+
+**Flow:**
+
+1. The client redirects the user to the authorization server.
+2. The user logs in and authorizes the client.
+3. The authorization server redirects the user back to the client with an authorization code.
+4. The client exchanges the authorization code for an access token.
+
+#### CLIENT_CREDENTIALS
+The Client Credentials grant type is used by clients to obtain an access token outside of the context of a user. This is typically used for machine-to-machine (M2M) applications.
+
+1. **Client:** The application requesting access to the resources.
+2. **Authorization Server:** The server that issues the access token.
+
+**Flow:**
+
+1. The client authenticates with the authorization server using its client ID and client secret.
+2. The authorization server issues an access token directly to the client.
+
+#### REFRESH_TOKEN
+The Refresh Token grant type is used to obtain a new access token by using a refresh token. This allows clients to continue to have a valid access token without further interaction with the user.
+
+1. **Client:** The application requesting a new access token.
+2. **Authorization Server:** The server that issues the new access token.
+
+**Flow:**
+
+1. The client sends the refresh token to the authorization server.
+2. The authorization server validates the refresh token and issues a new access token.
+
+### `UserDetailsService`
+
+```java
+@Bean // This annotation indicates that a method produces a bean to be managed by the Spring container
+public UserDetailsService userDetailsService() {
+  UserDetails userDetails = User.builder()
+          .username("user") // Set the username
+          .password(bCryptPasswordEncoder.encode("password")) // Set the password
+          .roles("USER") // Set the role
+          .build(); // Build the UserDetails instance
+
+  return new InMemoryUserDetailsManager(userDetails); // Return an in-memory user details manager with the created user
+}
+```
+
+#### `UserDetailsService` Interface
+
+- A core interface in Spring Security used to retrieve user-related data.
+- It has a single method, `loadUserByUsername(String username)`, which is used to look up the user based on the username.
+
+#### Usage
+- **Authentication**
+  - When a user tries to authenticate, Spring Security will use the UserDetailsService to load the user details by username.
+  - The InMemoryUserDetailsManager will return the UserDetails instance if the username matches.
+- **Authorization**
+  - The roles and authorities defined in the UserDetails instance are used to determine what actions the authenticated user is allowed to perform.
+
+> How do we make this Database-driven instead of using an In-Memory store?
+
+Reference: https://www.baeldung.com/spring-security-authentication-with-a-database
+
