@@ -52,14 +52,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product addProduct(Product request) {
         // Not required since we're using CASCADING now
-//        Optional<Category> category = categoryRepository.findByName(request.getCategory().getName());
-//        if (category.isEmpty()) {
-//            Category createdCategory = categoryRepository.save(request.getCategory());
-//            request.setCategory(createdCategory);
-//        }
-//        else {
-//            request.setCategory(category.get());
-//        }
+        Optional<Category> category = categoryRepository.findByName(request.getCategory().getName());
+        if (category.isEmpty()) {
+            Category createdCategory = categoryRepository.save(request.getCategory());
+            request.setCategory(createdCategory);
+        }
+        else {
+            request.setCategory(category.get());
+        }
         return productRepository.save(request);
     }
 

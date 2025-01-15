@@ -21,7 +21,7 @@ public class Category extends BaseModel {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "category")
     // But we also have ManyToOne in Product class, so this is a bidirectional relationship
     // This can cause a confusion in Hibernate, for which we need to specify the mappedBy attribute
-//    @JsonBackReference // When a Category is serialized, it will not include its Products, this is to prevent infinite recursion while getting Products
+    @JsonBackReference // When a Category is serialized, it will not include its Products, this is to prevent infinite recursion while getting Products
     private List<Product> products;
 }
 
