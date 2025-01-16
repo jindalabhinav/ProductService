@@ -7,6 +7,9 @@ import com.example.productservice.repositories.CategoryRepository;
 import com.example.productservice.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -42,6 +45,16 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductNotFoundException("No products found");
         }
         return products;
+    }
+
+    @Override
+    public Page<Product> getAllProducts(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Product> productsPage = productRepository.findAll(pageable);
+        if (productsPage.isEmpty()) {
+            throw new ProductNotFoundException("No products found");
+        }
+        return productsPage;
     }
 
     @Override

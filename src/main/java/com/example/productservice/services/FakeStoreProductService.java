@@ -5,6 +5,7 @@ import com.example.productservice.models.Category;
 import com.example.productservice.models.Product;
 import com.example.productservice.thirdpartyclients.FakeStoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -29,6 +30,11 @@ public class FakeStoreProductService implements ProductService {
         return Arrays.stream(fakeStoreClient.getAllProducts())
                 .map(this::getProductFromFakeStoreProductDto)
                 .toList();
+    }
+
+    @Override
+    public Page<Product> getAllProducts(int pageNumber, int pageSize) {
+        return null;
     }
 
     @Override

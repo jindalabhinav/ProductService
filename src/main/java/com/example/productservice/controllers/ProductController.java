@@ -5,6 +5,7 @@ import com.example.productservice.security.services.AuthenticationService;
 import com.example.productservice.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -38,6 +39,12 @@ public class ProductController {
     @GetMapping()
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
+    }
+
+    @GetMapping("/paged")
+    public Page<Product> getAllProducts(@RequestParam("pageNumber") int pageNumber,
+                                        @RequestParam("pageSize") int pageSize) {
+        return productService.getAllProducts(pageNumber, pageSize); // pageNumber is 0-based here
     }
 
     @PostMapping
