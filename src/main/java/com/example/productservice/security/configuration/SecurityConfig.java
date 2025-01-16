@@ -19,8 +19,9 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/products/{id}").hasAuthority("CUSTOMER") // Only users with CUSTOMER authority can access /products/{id}
+                .requestMatchers("/products/{id}").hasAuthority("SCOPE_CUSTOMER") // Only users with CUSTOMER authority can access /products/{id}
                 .requestMatchers("/products").hasAuthority("SCOPE_ADMIN") // Only users with ADMIN authority can access /products
+                .requestMatchers("/products/users").hasAuthority("SCOPE_ADMIN") // Only users with ADMIN authority can access /products
                 .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated() // Require all requests to be authenticated
             )

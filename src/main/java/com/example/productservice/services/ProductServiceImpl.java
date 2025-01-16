@@ -7,7 +7,9 @@ import com.example.productservice.repositories.CategoryRepository;
 import com.example.productservice.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,11 +20,13 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
     private CategoryRepository categoryRepository;
+    private RestTemplate restTemplate;
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, RestTemplate restTemplate) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -69,5 +73,12 @@ public class ProductServiceImpl implements ProductService {
         if (product.isEmpty())
             throw new ProductNotFoundException("Product with Id: " + request.getId() + " doesn't exist.");
         return productRepository.save(request);
+    }
+
+    @Override
+    public String getAllUsers() {
+        // only for demo purpose, to show usage of service discovery
+        ResponseEntity<String> response = restTemplate.getForEntity("http://userservice/users", String.class);
+        return response.getBody();
     }
 }

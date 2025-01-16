@@ -48,6 +48,11 @@ public class FakeStoreProductService implements ProductService {
         return getProductFromFakeStoreProductDto(fakeStoreClient.updateProductById(fakeStoreProductDto));
     }
 
+    @Override
+    public String getAllUsers() {
+        return "";
+    }
+
     private Product getProductFromFakeStoreProductDto(FakeStoreProductDto fakeStoreProductDto) {
         Product product = new Product();
         product.setId(fakeStoreProductDto.getId());

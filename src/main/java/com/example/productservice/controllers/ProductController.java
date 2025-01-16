@@ -54,4 +54,10 @@ public class ProductController {
     public Product updateProduct(@RequestBody Product request) {
         return productService.updateProduct(request);
     }
+
+    @GetMapping("/users")
+    public String getAllUsers() {
+        // only for demo purpose, to show usage of service discovery, not supposed to be present in this class
+        return productService.getAllUsers();
+    }
 }
