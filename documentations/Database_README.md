@@ -1,4 +1,4 @@
-# Product Service
+# Database
 
 This document explains how a request is sent to the database and how it is handled:
 

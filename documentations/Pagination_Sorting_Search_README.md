@@ -1,4 +1,4 @@
-# Search. Pagination, and Sorting
+# Search, Pagination, and Sorting
 
 ## Search
 
