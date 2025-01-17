@@ -4,9 +4,28 @@ Spring Cloud provides tools for developers to quickly build some of the common p
 
 ## API Gateway and Load Balancer
 
-To get a resource from a server, we need to know its URL and the path to redirect the request to the correct server. A load balancer is responsible for distributing the load among many instances.
+### API Gateway
+- Acts as the single entry point for all client requests
+- Handles routing requests to appropriate microservices
+- Provides additional features:
+  - Authentication and authorization
+  - Request/response transformation
+  - Rate limiting
+  - API versioning
+  - Request validation
+  - Documentation
+- API Gateway gets the location of the services from the Service Registry
+- Runs at port 8080 (default)
+- 
 
-The task of routing the request to the correct microservice is done by an **API Gateway**. Balancing requests between the servers is the responsibility of the **Load Balancer**.
+### Load Balancer
+- Distributes incoming traffic across multiple service instances
+- Ensures high availability and reliability
+- Provides features:
+  - Health checking
+  - Session persistence
+  - SSL termination
+  - Dynamic scaling support
 
 Sometimes, there is a single layer that performs the functions of both an `API Gateway` and a `Load Balancer`.
 
@@ -16,13 +35,13 @@ Communication between the Product Service and the User Service can happen in two
 - Directly reaching out to one of the instances of the User Service
     - Multiple URLs possible
     - Faster
-- Calling the load balancer and then reaching the User Service, adding an additional hop
+- Calling the load balancer and then reaching the User Service, adding a hop
     - Single URL
     - Adds latency
 
 If we can have a localized load balancer for the User Service, we could improve latency by skipping an additional network hop. This is also known as **Service Discovery**.
 
-## Service Registry
+## Service Discovery
 
 A service registry keeps track of all servers currently running for every service.
 
@@ -47,3 +66,12 @@ Spring Cloud has the functionality of Service Discovery. Netflix open-sourced th
 - **Ribbon**: Client-side Load Balancer
 - **Hystrix**: Circuit Breaker
 - **Zuul**: Edge Server (API Gateway)
+
+## Implementing API Gateway
+
+- We create a new Project for this with the following Maven Dependencies:
+  - Spring Cloud Gateway
+  - Spring Cloud LoadBalancer
+  - Spring Cloud Eureka Client
+  - Lombok
+  - Spring Web
