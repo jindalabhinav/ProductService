@@ -7,12 +7,13 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 @Getter
 @Setter
 @MappedSuperclass // we don't want a table to be created for BaseModel
-public abstract class BaseModel {
+public abstract class BaseModel implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     // It instructs the JPA provider to choose the appropriate strategy for generating the ID

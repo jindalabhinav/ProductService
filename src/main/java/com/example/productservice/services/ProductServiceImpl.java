@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -24,17 +25,36 @@ public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
     private CategoryRepository categoryRepository;
     private RestTemplate restTemplate;
+    private RedisTemplate<Long, Object> redisTemplate;
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, RestTemplate restTemplate) {
+    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, RestTemplate restTemplate, RedisTemplate<Long, Object> redisTemplate) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     public Product getProductById(Long id) {
+        /*
+        Cache Implementation
+
+        1. Check if the product is present in the cache
+        2. If present, return the product
+        3. If not present, fetch the product from the database
+        4. Store the product in the cache
+        5. Return the product
+         */
+        if (redisTemplate.opsForHash().get(id, "PRODUCTS") != null) {
+            System.out.println("Cache Hit");
+            return (Product) redisTemplate.opsForHash().get(id, "PRODUCTS");
+        }
+        System.out.println("Cache Miss");
         Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            redisTemplate.opsForHash().put(id, "PRODUCTS", product.get());
+        }
         return product.orElseThrow(() -> new ProductNotFoundException("Product not found for id: " + id));
     }
 

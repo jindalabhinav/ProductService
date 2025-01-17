@@ -10,13 +10,14 @@ import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @Setter
 @Entity
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class Category extends BaseModel {
+public class Category extends BaseModel implements Serializable {
     private String name;
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "category")
     // But we also have ManyToOne in Product class, so this is a bidirectional relationship

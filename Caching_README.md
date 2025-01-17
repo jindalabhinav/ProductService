@@ -27,24 +27,44 @@ Fetching data from a cache like Redis (in-memory) typically takes microseconds t
 - A cache stored on the same instance of the application.  
 - Examples: In-memory structures like **ConcurrentHashMap** in Java or **MemoryCache** in .NET.  
 
-#### Code Example (using .NET MemoryCache):  
+#### Code Example:  
 ```java
-// Create a cache with a 10-minute expiration time
-LoadingCache<String, Product> cache = CacheBuilder.newBuilder()
-        .expireAfterWrite(10, TimeUnit.MINUTES)
-        .build(new CacheLoader<String, Product>() {
-            @Override
-            public Product load(String key) throws Exception {
-                // This method will be called if the key is not found in the cache
-                return null;
-            }
-        });
+public class ProductServiceImpl implements ProductService {
+    private final ProductRepository productRepository;
+    private final LoadingCache<Long, Product> productCache;
 
-// Add item to cache
-cache.put("product_123", product);
+    @Autowired
+    public ProductServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+        this.productCache = CacheBuilder.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .build(new CacheLoader<Long, Product>() {
+                    @Override
+                    public Product load(Long id) throws Exception {
+                        return productRepository.findById(id)
+                                .orElseThrow(() -> new ProductNotFoundException("Product not found for id: " + id));
+                    }
+                });
+    }
 
-// Retrieve item from cache
-Product product = cache.getIfPresent("product_123");
+    @Override
+    public Product getProductById(Long id) {
+        /*
+        Cache Implementation
+
+        1. Check if the product is present in the cache
+        2. If present, return the product
+        3. If not present, fetch the product from the database
+        4. Store the product in the cache
+        5. Return the product
+         */
+        try {
+            return productCache.get(id);
+        } catch (Exception e) {
+            throw new ProductNotFoundException("Product not found for id: " + id);
+        }
+    }
+}
 ```
 
 #### Pros:  
@@ -61,17 +81,43 @@ A shared caching system like Redis, accessible across multiple instances.
 #### Code Example (using Redis in C#):
 
 ```java
-// Create a Jedis connection
-Jedis jedis = new Jedis("localhost");
-ObjectMapper objectMapper = new ObjectMapper();
+public class ProductServiceImpl implements ProductService {
+    private ProductRepository productRepository;
+    private CategoryRepository categoryRepository;
+    private RestTemplate restTemplate;
+    private RedisTemplate<Long, Object> redisTemplate;
 
-// Add item to cache
-String productJson = objectMapper.writeValueAsString(product);
-jedis.setex("product_123", (int) TimeUnit.MINUTES.toSeconds(10), productJson);
+    @Autowired
+    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, RestTemplate restTemplate, RedisTemplate<Long, Object> redisTemplate) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
+    }
 
-// Retrieve item from cache
-String cachedProductJson = jedis.get("product_123");
-Product cachedProduct = objectMapper.readValue(cachedProductJson, Product.class);
+    @Override
+    public Product getProductById(Long id) {
+        /*
+        Cache Implementation
+
+        1. Check if the product is present in the cache
+        2. If present, return the product
+        3. If not present, fetch the product from the database
+        4. Store the product in the cache
+        5. Return the product
+         */
+        if (redisTemplate.opsForHash().get(id, "PRODUCTS") != null) {
+            System.out.println("Cache Hit");
+            return (Product) redisTemplate.opsForHash().get(id, "PRODUCTS");
+        }
+        System.out.println("Cache Miss");
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            redisTemplate.opsForHash().put(id, "PRODUCTS", product.get());
+        }
+        return product.orElseThrow(() -> new ProductNotFoundException("Product not found for id: " + id));
+    }
+}
 ```
 
 #### Pros:
@@ -83,6 +129,11 @@ Product cachedProduct = objectMapper.readValue(cachedProductJson, Product.class)
 
 - Network latency when accessing the cache.
 - Additional complexity in managing Redis.
+
+**Note:** We need to run a Redis Server before running this implementation of a Global Cache. Using a Redis Docker Container for the same.
+```bash
+docker run --name redis -d -p 6379:6379 redis
+```
 
 ## Browser Cache vs DNS Cache  
 
