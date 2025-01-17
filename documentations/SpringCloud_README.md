@@ -56,7 +56,7 @@ A service registry keeps track of all servers currently running for every servic
 | user-service   | user-instance-2   | 10.0.1.102   | 8081  | UP        | 15s ago        |
 | product-service| product-instance-1| 10.0.1.201   | 8082  | UP        | 10s ago        |
 | order-service  | order-instance-1  | 10.0.1.301   | 8083  | UP        | 5s ago         |
-| order-service  | order-instance-2  | 10.0.1.302   | 8083  | DOWN      | 5min ago       |
+| order-service  | order-instance-2  | 10.0.1.302   | 8083  | DOWN      | 5m ago       |
 | payment-service| payment-instance-1| 10.0.1.401   | 8084  | UP        | 20s ago        |
 
 ## Spring Cloud and Netflix OSS
