@@ -111,3 +111,37 @@ Now the Product Service needs to do some security validations as well. Is that t
 No, it's not. The primary responsibility of the Product Service is to handle all the business logic related to products. So, we need to create a new package called `com.example.product.security` and move all the security-related classes there.
 
 We can have a different packages for Products, Security, and other modules. But, we can also have a module-based package structure. This is a better approach as it helps in maintaining the codebase and makes it more scalable. Hence, if there are classes that we need to add for Security (like controller, service, and repository), we first get into the respective module, and then follow MVC.
+
+## Additional Documentation
+
+For more detailed information on various aspects of the Product Catalogue Service, please refer to the following documents:
+
+### [Authentication and Authorization](documentations/Auth_README.md)
+This document covers the authentication and authorization mechanisms used in the Product Catalogue Service, including JWT, OAuth, and Spring Security configurations.
+
+### [Caching](documentations/Caching_README.md)
+This document explains the caching strategies employed in the Product Catalogue Service, including the use of Redis for global caching and in-memory caching techniques.
+
+### [Containerization](documentations/Containerization_README.md)
+This document provides an overview of containerization using Docker and Kubernetes, including examples of Dockerfiles and Kubernetes deployment configurations.
+
+### [Database](documentations/Database_README.md)
+This document details the database design and ORM (Object-Relational Mapping) strategies used in the Product Catalogue Service, including schema migration and query optimization techniques.
+
+### [Deployment](documentations/Deployment_README.md)
+This document outlines the deployment process for the Product Catalogue Service onto AWS, including VPC setup, security groups, EC2 instances, and Elastic Beanstalk configurations.
+
+### [Pagination, Sorting, and Search](documentations/Pagination_Sorting_Search_README.md)
+This document explains the implementation of pagination, sorting, and search functionalities in the Product Catalogue Service, including examples using JPA and Elastic Search.
+
+### [Payment Service](documentations/PaymentService_README.md)
+This document describes the integration of payment gateways with the Product Catalogue Service, including webhook implementations and payment status handling.
+
+### [Queues](documentations/Queues_README.md)
+This document introduces messaging queues with Kafka, explaining how they are used for asynchronous processing and communication between different components of the Product Catalogue Service.
+
+### [Spring Cloud](documentations/SpringCloud_README.md)
+This document covers the use of Spring Cloud for service discovery, load balancing, and API gateway implementation in the Product Catalogue Service.
+
+### [Unit Testing](documentations/UnitTest_README.md)
+This document provides guidelines for writing unit tests for the Product Catalogue Service, including best practices for test coverage and mocking dependencies.
