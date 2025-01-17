@@ -28,11 +28,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public Product getProductById(@RequestHeader("Authorization") String token,
-                                  @PathVariable("id") Long id) throws AccessDeniedException {
-        if (!authenticationService.authenticate(token)) {
-            throw new AccessDeniedException("You're not authorized to perform this operation");
-        }
+    public Product getProductById(@PathVariable("id") Long id) {
         return productService.getProductById(id);
     }
 
